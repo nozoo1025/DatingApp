@@ -51,7 +51,7 @@ namespace API.Controllers {
 
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
 
-            if (!ComparePasswordSecurely(user.PasswordHash, computedHash)) return Unauthorized();
+            if (!ComparePasswordSecurely(user.PasswordHash, computedHash)) return Unauthorized("Invalid password");
 
             return new UserDto {
                 Username = user.UserName,
