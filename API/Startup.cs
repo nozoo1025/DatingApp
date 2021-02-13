@@ -16,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace API {
     public class Startup {
         private readonly IConfiguration _config;
-        
+
         public Startup(IConfiguration config) {
             _config = config;
         }
@@ -37,7 +37,12 @@ namespace API {
 
             app.UseRouting();
 
-            app.UseCors(x => x.AllowAnyHeader().WithOrigins("https://localhost:4200"));
+            app.UseCors(x =>
+                x.AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .WithOrigins("https://localhost:4200")
+                    .AllowCredentials()
+            );
 
             app.UseAuthentication();
             app.UseAuthorization();

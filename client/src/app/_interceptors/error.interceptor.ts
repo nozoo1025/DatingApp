@@ -11,6 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 import { catchError } from 'rxjs/operators';
 
 @Injectable()
+// @ts-ignore
 export class ErrorInterceptor implements HttpInterceptor {
 
   constructor(private router: Router, private toastr: ToastrService) {}
@@ -28,6 +29,7 @@ export class ErrorInterceptor implements HttpInterceptor {
                     modalStateErrors.push(error.error.errors[key]);
                   }
                 }
+                // @ts-ignore
                 throw modalStateErrors.flat();
               } else {
                 this.toastr.error(error.statusText, error.status);

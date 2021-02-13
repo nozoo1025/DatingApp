@@ -11,6 +11,7 @@ import { User } from '../_models/user';
 import { take } from 'rxjs/operators';
 
 @Injectable()
+// @ts-ignore
 export class JwtInterceptor implements HttpInterceptor {
 
   constructor(private accountService: AccountService) {}
