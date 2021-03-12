@@ -1,41 +1,42 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json;
+using System.Linq;
 using System.Threading.Tasks;
 using API.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace API.Data {
     public class Seed {
         public static async Task SeedUsers(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager) {
-            if (await userManager.Users.AnyAsync()) return;
+            if (!userManager.Users.Any()) {
+                var userData = System.IO.File.ReadAllText("Data/UserSeedData.json");
+                var users = JsonConvert.DeserializeObject<List<AppUser>>(userData);
 
-            var userData = await System.IO.File.ReadAllTextAsync("Data/UserSeedData.json");
-            var users = JsonSerializer.Deserialize<List<AppUser>>(userData);
+                var roles = new List<AppRole> {
+                    new AppRole { Name = "Member" },
+                    new AppRole { Name = "Admin" },
+                    new AppRole { Name = "Moderator" }
+                };
 
-            if (users is null) return;
+                foreach (var role in roles) {
+                    await roleManager.CreateAsync(role);
+                }
 
-            var roles = new List<AppRole> {
-                new AppRole { Name = "Member" },
-                new AppRole { Name = "Admin" },
-                new AppRole { Name = "Moderator" }
-            };
+                foreach (var user in users) {
+                    await userManager.CreateAsync(user, "Pa$$w0rd");
+                    await userManager.AddToRoleAsync(user, "Member");
+                }
 
-            roles.ForEach(async role => { await roleManager.CreateAsync(role); });
+                var adminUser = new AppUser {
+                    UserName = "Admin"
+                };
 
-            foreach (var user in users) {
-                user.UserName = user.UserName.ToLower();
-
-                await userManager.CreateAsync(user, "Pa$$w0rd");
-                await userManager.AddToRoleAsync(user, "Member");
+                var result = await userManager.CreateAsync(adminUser, "Pa$$w0rd");
+                if (result.Succeeded) {
+                    var admin = await userManager.FindByNameAsync("Admin");
+                    await userManager.AddToRolesAsync(admin, new[] { "Admin", "Moderator" });
+                }
             }
-
-            var admin = new AppUser {
-                UserName = "admin"
-            };
-
-            await userManager.CreateAsync(admin, "Pa$$w0rd");
-            await userManager.AddToRolesAsync(admin, new[] { "Admin", "Moderator" });
         }
     }
 }

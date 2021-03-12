@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
@@ -53,7 +51,7 @@ namespace API.Controllers {
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto) {
             var user = await _userManager.Users
                 .Include(p => p.Photos)
-                .SingleOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+                .SingleOrDefaultAsync(x => x.UserName.ToLower() == loginDto.Username.ToLower());
 
             if (user == null) return Unauthorized("Invalid username");
 
@@ -70,16 +68,13 @@ namespace API.Controllers {
             };
         }
 
-        private async Task<bool> UserExists(string username) {
-            return await _userManager.Users.AnyAsync(x => x.UserName == username.ToLower());
+        [HttpGet("users")]
+        public async Task<IList<AppUser>> GetUsers() {
+            return await _userManager.GetUsersInRoleAsync("Member");
         }
 
-        private bool ComparePasswordSecurely(byte[] password1, byte[] password2) {
-            if (password1.Length != password2.Length) return false;
-
-            
-            var isInvalidPassword = password1.Where((c, i) => c != password2[i]).Any();
-            return !isInvalidPassword;
+        private async Task<bool> UserExists(string username) {
+            return await _userManager.Users.AnyAsync(x => x.UserName == username.ToLower());
         }
     }
 }
